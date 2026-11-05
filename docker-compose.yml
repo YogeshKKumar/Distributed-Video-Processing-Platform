@@ -1,0 +1,257 @@
+services:
+  # =================================================================
+  # INFRASTRUCTURE SERVICES
+  # =================================================================
+  mysql:
+    image: mysql:8.0
+    container_name: video-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: upload_db
+      MYSQL_USER: video_user
+      MYSQL_PASSWORD: video_pass
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-prootpassword"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - video-network
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: video-rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - video-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: video-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - video-network
+
+  # =================================================================
+  # APPLICATION MICROSERVICES
+  # =================================================================
+  api-gateway:
+    build:
+      context: .
+      dockerfile: services/api_gateway/Dockerfile
+    container_name: video-api-gateway
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - UPLOAD_SERVICE_URL=http://video-upload-service:8001
+      - METADATA_SERVICE_URL=http://video-metadata-service:8002
+      - ORCHESTRATOR_SERVICE_URL=http://transcoding-orchestrator-service:8003
+      - TRANSCODING_SERVICE_URL=http://transcoding-worker-service:8004
+      - THUMBNAIL_SERVICE_URL=http://thumbnail-generation-service:8005
+      - MEDIA_SERVICE_URL=http://media-delivery-service:8006
+    depends_on:
+      - video-upload-service
+      - video-metadata-service
+      - transcoding-orchestrator-service
+      - media-delivery-service
+    networks:
+      - video-network
+
+  video-upload-service:
+    build:
+      context: .
+      dockerfile: services/video_upload/Dockerfile
+    container_name: video-upload-service
+    restart: unless-stopped
+    ports:
+      - "8001:8001"
+    environment:
+      - DATA_DIR=/data
+      - UPLOAD_DATABASE_URL=mysql+pymysql://video_user:video_pass@mysql:3306/upload_db
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=guest
+      - RABBITMQ_PASSWORD=guest
+    volumes:
+      - media_data:/data
+    depends_on:
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - video-network
+
+  video-metadata-service:
+    build:
+      context: .
+      dockerfile: services/video_metadata/Dockerfile
+    container_name: video-metadata-service
+    restart: unless-stopped
+    ports:
+      - "8002:8002"
+    environment:
+      - DATA_DIR=/data
+      - METADATA_DATABASE_URL=mysql+pymysql://video_user:video_pass@mysql:3306/metadata_db
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=guest
+      - RABBITMQ_PASSWORD=guest
+    volumes:
+      - media_data:/data
+    depends_on:
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - video-network
+
+  transcoding-orchestrator-service:
+    build:
+      context: .
+      dockerfile: services/transcoding_orchestrator/Dockerfile
+    container_name: transcoding-orchestrator-service
+    restart: unless-stopped
+    ports:
+      - "8003:8003"
+    environment:
+      - DATA_DIR=/data
+      - ORCHESTRATOR_DATABASE_URL=mysql+pymysql://video_user:video_pass@mysql:3306/orchestrator_db
+      - METADATA_SERVICE_URL=http://video-metadata-service:8002
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=guest
+      - RABBITMQ_PASSWORD=guest
+    volumes:
+      - media_data:/data
+    depends_on:
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - video-network
+
+  transcoding-worker-service:
+    build:
+      context: .
+      dockerfile: services/transcoding_worker/Dockerfile
+    container_name: transcoding-worker-service
+    restart: unless-stopped
+    ports:
+      - "8004:8004"
+    environment:
+      - DATA_DIR=/data
+      - TRANSCODING_DATABASE_URL=mysql+pymysql://video_user:video_pass@mysql:3306/transcoding_db
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=guest
+      - RABBITMQ_PASSWORD=guest
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    volumes:
+      - media_data:/data
+    depends_on:
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - video-network
+
+  thumbnail-generation-service:
+    build:
+      context: .
+      dockerfile: services/thumbnail_generation/Dockerfile
+    container_name: thumbnail-generation-service
+    restart: unless-stopped
+    ports:
+      - "8005:8005"
+    environment:
+      - DATA_DIR=/data
+      - THUMBNAIL_DATABASE_URL=mysql+pymysql://video_user:video_pass@mysql:3306/thumbnail_db
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=guest
+      - RABBITMQ_PASSWORD=guest
+    volumes:
+      - media_data:/data
+    depends_on:
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - video-network
+
+  media-delivery-service:
+    build:
+      context: .
+      dockerfile: services/media_delivery/Dockerfile
+    container_name: media-delivery-service
+    restart: unless-stopped
+    ports:
+      - "8006:8006"
+    environment:
+      - DATA_DIR=/data
+      - TRANSCODING_SERVICE_URL=http://transcoding-worker-service:8004
+      - THUMBNAIL_SERVICE_URL=http://thumbnail-generation-service:8005
+    volumes:
+      - media_data:/data
+    networks:
+      - video-network
+
+  # =================================================================
+  # REACT FRONTEND
+  # =================================================================
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    container_name: video-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      - api-gateway
+    networks:
+      - video-network
+
+networks:
+  video-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+  rabbitmq_data:
+  media_data:
