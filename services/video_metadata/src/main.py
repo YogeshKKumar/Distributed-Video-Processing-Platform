@@ -2,12 +2,28 @@ import threading
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from services.video_metadata.src.db import init_db
-from services.video_metadata.src.routes import (
-    router,
-    handle_video_uploaded,
-    handle_job_status_updated,
-)
+try:
+    from .db import init_db
+    from .routes import (
+        router,
+        handle_video_uploaded,
+        handle_job_status_updated,
+    )
+except (ImportError, ValueError):
+    try:
+        from src.db import init_db
+        from src.routes import (
+            router,
+            handle_video_uploaded,
+            handle_job_status_updated,
+        )
+    except (ImportError, ValueError):
+        from services.video_metadata.src.db import init_db
+        from services.video_metadata.src.routes import (
+            router,
+            handle_video_uploaded,
+            handle_job_status_updated,
+        )
 from shared.messaging import message_broker
 
 @asynccontextmanager

@@ -1,7 +1,15 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from services.video_metadata.src.config import metadata_settings
-from services.video_metadata.src.models import Base
+try:
+    from .config import metadata_settings
+    from .models import Base
+except (ImportError, ValueError):
+    try:
+        from src.config import metadata_settings
+        from src.models import Base
+    except (ImportError, ValueError):
+        from services.video_metadata.src.config import metadata_settings
+        from services.video_metadata.src.models import Base
 
 connect_args = {"check_same_thread": False, "timeout": 20} if "sqlite" in metadata_settings.DATABASE_URL else {}
 

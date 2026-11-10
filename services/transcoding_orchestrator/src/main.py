@@ -3,15 +3,37 @@ import logging
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from services.transcoding_orchestrator.src.db import init_db, SessionLocal
-from services.transcoding_orchestrator.src.routes import router
-from services.transcoding_orchestrator.src.orchestrator import (
-    TranscodingOrchestrator,
-    handle_transcode_completed,
-    handle_transcode_failed,
-    handle_thumbnail_completed,
-    handle_thumbnail_failed,
-)
+try:
+    from .db import init_db, SessionLocal
+    from .routes import router
+    from .orchestrator import (
+        TranscodingOrchestrator,
+        handle_transcode_completed,
+        handle_transcode_failed,
+        handle_thumbnail_completed,
+        handle_thumbnail_failed,
+    )
+except (ImportError, ValueError):
+    try:
+        from src.db import init_db, SessionLocal
+        from src.routes import router
+        from src.orchestrator import (
+            TranscodingOrchestrator,
+            handle_transcode_completed,
+            handle_transcode_failed,
+            handle_thumbnail_completed,
+            handle_thumbnail_failed,
+        )
+    except (ImportError, ValueError):
+        from services.transcoding_orchestrator.src.db import init_db, SessionLocal
+        from services.transcoding_orchestrator.src.routes import router
+        from services.transcoding_orchestrator.src.orchestrator import (
+            TranscodingOrchestrator,
+            handle_transcode_completed,
+            handle_transcode_failed,
+            handle_thumbnail_completed,
+            handle_thumbnail_failed,
+        )
 from shared.messaging import message_broker
 
 logger = logging.getLogger("orchestrator_main")

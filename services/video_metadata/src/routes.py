@@ -3,9 +3,19 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from services.video_metadata.src.db import get_db, SessionLocal
-from services.video_metadata.src.models import VideoMetadata
-from services.video_metadata.src.probe import VideoMetadataProbe
+try:
+    from .db import get_db, SessionLocal
+    from .models import VideoMetadata
+    from .probe import VideoMetadataProbe
+except (ImportError, ValueError):
+    try:
+        from src.db import get_db, SessionLocal
+        from src.models import VideoMetadata
+        from src.probe import VideoMetadataProbe
+    except (ImportError, ValueError):
+        from services.video_metadata.src.db import get_db, SessionLocal
+        from services.video_metadata.src.models import VideoMetadata
+        from services.video_metadata.src.probe import VideoMetadataProbe
 
 logger = logging.getLogger("metadata_routes")
 router = APIRouter(prefix="/api/v1", tags=["Video Metadata"])

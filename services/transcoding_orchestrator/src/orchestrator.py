@@ -4,8 +4,16 @@ import logging
 import os
 from typing import List, Optional
 from sqlalchemy.orm import Session
-from services.transcoding_orchestrator.src.db import SessionLocal
-from services.transcoding_orchestrator.src.models import ProcessingJob
+try:
+    from .db import SessionLocal
+    from .models import ProcessingJob
+except (ImportError, ValueError):
+    try:
+        from src.db import SessionLocal
+        from src.models import ProcessingJob
+    except (ImportError, ValueError):
+        from services.transcoding_orchestrator.src.db import SessionLocal
+        from services.transcoding_orchestrator.src.models import ProcessingJob
 from shared.config import shared_settings
 from shared.events import (
     TranscodeTaskEvent,

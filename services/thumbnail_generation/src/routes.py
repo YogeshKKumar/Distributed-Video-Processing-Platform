@@ -1,7 +1,15 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from services.thumbnail_generation.src.db import get_db
-from services.thumbnail_generation.src.models import VideoThumbnail
+try:
+    from .db import get_db
+    from .models import VideoThumbnail
+except (ImportError, ValueError):
+    try:
+        from src.db import get_db
+        from src.models import VideoThumbnail
+    except (ImportError, ValueError):
+        from services.thumbnail_generation.src.db import get_db
+        from services.thumbnail_generation.src.models import VideoThumbnail
 
 router = APIRouter(prefix="/api/v1", tags=["Thumbnails"])
 

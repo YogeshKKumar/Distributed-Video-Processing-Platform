@@ -2,8 +2,16 @@ import uuid
 from typing import Optional
 from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException, status
 from sqlalchemy.orm import Session
-from services.video_upload.src.db import get_db
-from services.video_upload.src.models import Video
+try:
+    from .db import get_db
+    from .models import Video
+except (ImportError, ValueError):
+    try:
+        from src.db import get_db
+        from src.models import Video
+    except (ImportError, ValueError):
+        from services.video_upload.src.db import get_db
+        from services.video_upload.src.models import Video
 from shared.storage import StorageManager
 from shared.messaging import message_broker
 from shared.events import VideoUploadedEvent

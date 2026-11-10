@@ -22,7 +22,10 @@ RUN pip install --no-cache-dir --upgrade pip setuptools wheel \
 COPY shared /app/shared
 
 # Copy service source code
+COPY services/thumbnail_generation /app/services/thumbnail_generation
 COPY services/thumbnail_generation/src /app/src
+
+ENV PYTHONPATH="/app"
 
 EXPOSE 8005
 

@@ -1,7 +1,13 @@
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from services.api_gateway.src.routes import router
+try:
+    from .routes import router
+except (ImportError, ValueError):
+    try:
+        from src.routes import router
+    except (ImportError, ValueError):
+        from services.api_gateway.src.routes import router
 
 app = FastAPI(
     title="Distributed Video Processing Platform - API Gateway",

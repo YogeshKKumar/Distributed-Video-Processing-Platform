@@ -1,7 +1,15 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from services.transcoding_worker.src.config import worker_settings
-from services.transcoding_worker.src.models import Base
+try:
+    from .config import worker_settings
+    from .models import Base
+except (ImportError, ValueError):
+    try:
+        from src.config import worker_settings
+        from src.models import Base
+    except (ImportError, ValueError):
+        from services.transcoding_worker.src.config import worker_settings
+        from services.transcoding_worker.src.models import Base
 
 connect_args = {"check_same_thread": False, "timeout": 20} if "sqlite" in worker_settings.DATABASE_URL else {}
 

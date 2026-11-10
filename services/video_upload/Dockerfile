@@ -20,7 +20,10 @@ RUN pip install --no-cache-dir --upgrade pip setuptools wheel \
 COPY shared /app/shared
 
 # Copy service source code
+COPY services/video_upload /app/services/video_upload
 COPY services/video_upload/src /app/src
+
+ENV PYTHONPATH="/app"
 
 EXPOSE 8001
 

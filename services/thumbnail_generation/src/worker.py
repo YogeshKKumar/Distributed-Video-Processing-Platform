@@ -1,9 +1,19 @@
 import json
 import logging
 import uuid
-from services.thumbnail_generation.src.db import SessionLocal
-from services.thumbnail_generation.src.models import VideoThumbnail
-from services.thumbnail_generation.src.ffmpeg_thumbnail import FFmpegThumbnailGenerator
+try:
+    from .db import SessionLocal
+    from .models import VideoThumbnail
+    from .ffmpeg_thumbnail import FFmpegThumbnailGenerator
+except (ImportError, ValueError):
+    try:
+        from src.db import SessionLocal
+        from src.models import VideoThumbnail
+        from src.ffmpeg_thumbnail import FFmpegThumbnailGenerator
+    except (ImportError, ValueError):
+        from services.thumbnail_generation.src.db import SessionLocal
+        from services.thumbnail_generation.src.models import VideoThumbnail
+        from services.thumbnail_generation.src.ffmpeg_thumbnail import FFmpegThumbnailGenerator
 from shared.events import (
     ThumbnailCompletedEvent,
     ThumbnailFailedEvent,

@@ -22,8 +22,11 @@ RUN pip install --no-cache-dir --upgrade pip setuptools wheel \
 COPY shared /app/shared
 
 # Copy service source code
+COPY services/transcoding_worker /app/services/transcoding_worker
 COPY services/transcoding_worker/src /app/src
+
+ENV PYTHONPATH="/app"
 
 EXPOSE 8004
 
-CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--por
+CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8004"]

@@ -1,6 +1,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from services.media_delivery.src.routes import router
+try:
+    from .routes import router
+except (ImportError, ValueError):
+    try:
+        from src.routes import router
+    except (ImportError, ValueError):
+        from services.media_delivery.src.routes import router
 
 app = FastAPI(
     title="Media Delivery Service",

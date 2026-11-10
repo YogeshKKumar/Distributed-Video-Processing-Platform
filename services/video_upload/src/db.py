@@ -1,8 +1,16 @@
 import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from services.video_upload.src.config import upload_settings
-from services.video_upload.src.models import Base
+try:
+    from .config import upload_settings
+    from .models import Base
+except (ImportError, ValueError):
+    try:
+        from src.config import upload_settings
+        from src.models import Base
+    except (ImportError, ValueError):
+        from services.video_upload.src.config import upload_settings
+        from services.video_upload.src.models import Base
 
 # Set connect_args for SQLite if used
 connect_args = {"check_same_thread": False, "timeout": 20} if "sqlite" in upload_settings.DATABASE_URL else {}

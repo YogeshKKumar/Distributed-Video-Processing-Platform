@@ -1,8 +1,16 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from services.video_upload.src.db import init_db
-from services.video_upload.src.routes import router
+try:
+    from .db import init_db
+    from .routes import router
+except (ImportError, ValueError):
+    try:
+        from src.db import init_db
+        from src.routes import router
+    except (ImportError, ValueError):
+        from services.video_upload.src.db import init_db
+        from services.video_upload.src.routes import router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

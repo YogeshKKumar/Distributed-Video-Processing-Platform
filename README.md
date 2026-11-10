@@ -22,16 +22,16 @@ A production-grade, distributed video processing platform built using independen
 
 ## 🏗️ Microservices Architecture
 
-| Service | Port | Database | Primary Responsibility |
-|---|---|---|---|
-| **API Gateway Service** | `8000` | — | Single frontend entrypoint, request validation, proxying, unified CORS |
-| **Video Upload Service** | `8001` | `upload_db` | Accepts uploads, validates file format/size/magic bytes, emits `video.uploaded` |
-| **Video Metadata Service** | `8002` | `metadata_db` | Probes dimensions, duration, format, and tracks video status |
-| **Transcoding Orchestrator** | `8003` | `orchestrator_db` | Schedules jobs, tracks progress, manages retries (max 3), and routes to DLQ |
-| **Transcoding Worker** | `8004` | `transcoding_db` | FFmpeg multi-resolution encoding (360p, 720p, 1080p), Redis idempotency lock |
-| **Thumbnail Generation** | `8005` | `thumbnail_db` | FFmpeg snapshot extraction at specified timestamps |
-| **Media Delivery Service** | `8006` | — | HTTP 206 Partial Content video streaming (seeking) & thumbnail serving |
-| **React Dashboard** | `3000` | — | Modern web UI for uploading, tracking jobs, and streaming videos |
+| Service | Host Port | Internal Port | Database | Primary Responsibility |
+|---|---|---|---|---|
+| **API Gateway Service** | `8088` | `8000` | — | Single frontend entrypoint, request validation, proxying, unified CORS |
+| **Video Upload Service** | `8001` | `8001` | `upload_db` | Accepts uploads, validates file format/size/magic bytes, emits `video.uploaded` |
+| **Video Metadata Service** | `8002` | `8002` | `metadata_db` | Probes dimensions, duration, format, and tracks video status |
+| **Transcoding Orchestrator** | `8003` | `8003` | `orchestrator_db` | Schedules jobs, tracks progress, manages retries (max 3), and routes to DLQ |
+| **Transcoding Worker** | `8004` | `8004` | `transcoding_db` | FFmpeg multi-resolution encoding (360p, 720p, 1080p), Redis idempotency lock |
+| **Thumbnail Generation** | `8005` | `8005` | `thumbnail_db` | FFmpeg snapshot extraction at specified timestamps |
+| **Media Delivery Service** | `8006` | `8006` | — | HTTP 206 Partial Content video streaming (seeking) & thumbnail serving |
+| **React Dashboard** | `3001` | `80` | — | Modern web UI for uploading, tracking jobs, and streaming videos |
 
 ---
 
@@ -49,10 +49,10 @@ docker compose up --build
 ```
 
 ### 2. Access the Application
-- **React Dashboard**: [http://localhost:3000](http://localhost:3000)
-- **API Gateway Swagger Docs**: [http://localhost:8000/docs](http://localhost:8000/docs)
-- **RabbitMQ Management Dashboard**: [http://localhost:15672](http://localhost:15672) (User: `guest`, Password: `guest`)
-- **API Gateway Health Status**: [http://localhost:8000/system/health](http://localhost:8000/system/health)
+- **React Dashboard**: [http://localhost:3001](http://localhost:3001)
+- **API Gateway Swagger Docs**: [http://localhost:8088/docs](http://localhost:8088/docs)
+- **RabbitMQ Management Dashboard**: [http://localhost:15673](http://localhost:15673) (User: `guest`, Password: `guest`)
+- **API Gateway Health Status**: [http://localhost:8088/system/health](http://localhost:8088/system/health)
 
 ---
 

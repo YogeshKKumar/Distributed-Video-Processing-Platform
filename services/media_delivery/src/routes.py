@@ -4,7 +4,13 @@ from fastapi import APIRouter, Request, HTTPException, status
 from fastapi.responses import FileResponse
 from shared.config import shared_settings
 from shared.storage import StorageManager
-from services.media_delivery.src.streaming import stream_video_file
+try:
+    from .streaming import stream_video_file
+except (ImportError, ValueError):
+    try:
+        from src.streaming import stream_video_file
+    except (ImportError, ValueError):
+        from services.media_delivery.src.streaming import stream_video_file
 
 router = APIRouter(tags=["Media Delivery"])
 

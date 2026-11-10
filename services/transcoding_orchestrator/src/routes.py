@@ -2,9 +2,19 @@ from typing import Optional, List
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from services.transcoding_orchestrator.src.db import get_db
-from services.transcoding_orchestrator.src.models import ProcessingJob
-from services.transcoding_orchestrator.src.orchestrator import TranscodingOrchestrator
+try:
+    from .db import get_db
+    from .models import ProcessingJob
+    from .orchestrator import TranscodingOrchestrator
+except (ImportError, ValueError):
+    try:
+        from src.db import get_db
+        from src.models import ProcessingJob
+        from src.orchestrator import TranscodingOrchestrator
+    except (ImportError, ValueError):
+        from services.transcoding_orchestrator.src.db import get_db
+        from services.transcoding_orchestrator.src.models import ProcessingJob
+        from services.transcoding_orchestrator.src.orchestrator import TranscodingOrchestrator
 
 router = APIRouter(prefix="/api/v1", tags=["Transcoding Orchestrator"])
 

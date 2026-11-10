@@ -1,7 +1,15 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from services.thumbnail_generation.src.config import thumbnail_settings
-from services.thumbnail_generation.src.models import Base
+try:
+    from .config import thumbnail_settings
+    from .models import Base
+except (ImportError, ValueError):
+    try:
+        from src.config import thumbnail_settings
+        from src.models import Base
+    except (ImportError, ValueError):
+        from services.thumbnail_generation.src.config import thumbnail_settings
+        from services.thumbnail_generation.src.models import Base
 
 connect_args = {"check_same_thread": False, "timeout": 20} if "sqlite" in thumbnail_settings.DATABASE_URL else {}
 

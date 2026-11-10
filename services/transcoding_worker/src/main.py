@@ -2,9 +2,19 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
-from services.transcoding_worker.src.db import init_db, get_db
-from services.transcoding_worker.src.models import ProcessingAttempt, TranscodingOutput
-from services.transcoding_worker.src.worker import process_transcode_task
+try:
+    from .db import init_db, get_db
+    from .models import ProcessingAttempt, TranscodingOutput
+    from .worker import process_transcode_task
+except (ImportError, ValueError):
+    try:
+        from src.db import init_db, get_db
+        from src.models import ProcessingAttempt, TranscodingOutput
+        from src.worker import process_transcode_task
+    except (ImportError, ValueError):
+        from services.transcoding_worker.src.db import init_db, get_db
+        from services.transcoding_worker.src.models import ProcessingAttempt, TranscodingOutput
+        from services.transcoding_worker.src.worker import process_transcode_task
 from shared.config import shared_settings
 from shared.messaging import message_broker
 

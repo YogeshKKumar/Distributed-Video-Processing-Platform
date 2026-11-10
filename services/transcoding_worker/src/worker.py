@@ -4,9 +4,19 @@ import logging
 import time
 from typing import Optional
 import redis
-from services.transcoding_worker.src.db import SessionLocal
-from services.transcoding_worker.src.models import ProcessingAttempt, TranscodingOutput
-from services.transcoding_worker.src.ffmpeg_transcoder import FFmpegTranscoder
+try:
+    from .db import SessionLocal
+    from .models import ProcessingAttempt, TranscodingOutput
+    from .ffmpeg_transcoder import FFmpegTranscoder
+except (ImportError, ValueError):
+    try:
+        from src.db import SessionLocal
+        from src.models import ProcessingAttempt, TranscodingOutput
+        from src.ffmpeg_transcoder import FFmpegTranscoder
+    except (ImportError, ValueError):
+        from services.transcoding_worker.src.db import SessionLocal
+        from services.transcoding_worker.src.models import ProcessingAttempt, TranscodingOutput
+        from services.transcoding_worker.src.ffmpeg_transcoder import FFmpegTranscoder
 from shared.config import shared_settings
 from shared.events import (
     TranscodeCompletedEvent,

@@ -12,7 +12,7 @@ services:
       MYSQL_USER: video_user
       MYSQL_PASSWORD: video_pass
     ports:
-      - "3306:3306"
+      - "${MYSQL_HOST_PORT:-3308}:3306"
     volumes:
       - mysql_data:/var/lib/mysql
       - ./mysql-init:/docker-entrypoint-initdb.d:ro
@@ -32,8 +32,8 @@ services:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - "${RABBITMQ_HOST_PORT:-5673}:5672"
+      - "${RABBITMQ_MGMT_PORT:-15673}:15672"
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     healthcheck:
@@ -68,7 +68,7 @@ services:
     container_name: video-api-gateway
     restart: unless-stopped
     ports:
-      - "8000:8000"
+      - "${GATEWAY_HOST_PORT:-8088}:8000"
     environment:
       - UPLOAD_SERVICE_URL=http://video-upload-service:8001
       - METADATA_SERVICE_URL=http://video-metadata-service:8002
@@ -90,8 +90,8 @@ services:
       dockerfile: services/video_upload/Dockerfile
     container_name: video-upload-service
     restart: unless-stopped
-    ports:
-      - "8001:8001"
+    expose:
+      - "8001"
     environment:
       - DATA_DIR=/data
       - UPLOAD_DATABASE_URL=mysql+pymysql://video_user:video_pass@mysql:3306/upload_db
@@ -115,8 +115,8 @@ services:
       dockerfile: services/video_metadata/Dockerfile
     container_name: video-metadata-service
     restart: unless-stopped
-    ports:
-      - "8002:8002"
+    expose:
+      - "8002"
     environment:
       - DATA_DIR=/data
       - METADATA_DATABASE_URL=mysql+pymysql://video_user:video_pass@mysql:3306/metadata_db
@@ -140,8 +140,8 @@ services:
       dockerfile: services/transcoding_orchestrator/Dockerfile
     container_name: transcoding-orchestrator-service
     restart: unless-stopped
-    ports:
-      - "8003:8003"
+    expose:
+      - "8003"
     environment:
       - DATA_DIR=/data
       - ORCHESTRATOR_DATABASE_URL=mysql+pymysql://video_user:video_pass@mysql:3306/orchestrator_db
@@ -166,8 +166,8 @@ services:
       dockerfile: services/transcoding_worker/Dockerfile
     container_name: transcoding-worker-service
     restart: unless-stopped
-    ports:
-      - "8004:8004"
+    expose:
+      - "8004"
     environment:
       - DATA_DIR=/data
       - TRANSCODING_DATABASE_URL=mysql+pymysql://video_user:video_pass@mysql:3306/transcoding_db
@@ -195,8 +195,8 @@ services:
       dockerfile: services/thumbnail_generation/Dockerfile
     container_name: thumbnail-generation-service
     restart: unless-stopped
-    ports:
-      - "8005:8005"
+    expose:
+      - "8005"
     environment:
       - DATA_DIR=/data
       - THUMBNAIL_DATABASE_URL=mysql+pymysql://video_user:video_pass@mysql:3306/thumbnail_db
@@ -220,8 +220,8 @@ services:
       dockerfile: services/media_delivery/Dockerfile
     container_name: media-delivery-service
     restart: unless-stopped
-    ports:
-      - "8006:8006"
+    expose:
+      - "8006"
     environment:
       - DATA_DIR=/data
       - TRANSCODING_SERVICE_URL=http://transcoding-worker-service:8004
@@ -241,7 +241,7 @@ services:
     container_name: video-frontend
     restart: unless-stopped
     ports:
-      - "3000:80"
+      - "${FRONTEND_HOST_PORT:-3001}:80"
     depends_on:
       - api-gateway
     networks:

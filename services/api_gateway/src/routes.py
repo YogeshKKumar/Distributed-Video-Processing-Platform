@@ -4,7 +4,13 @@ from typing import Optional
 import httpx
 from fastapi import APIRouter, Request, Response, UploadFile, File, Form, HTTPException, status
 from fastapi.responses import StreamingResponse
-from services.api_gateway.src.config import gateway_settings
+try:
+    from .config import gateway_settings
+except (ImportError, ValueError):
+    try:
+        from src.config import gateway_settings
+    except (ImportError, ValueError):
+        from services.api_gateway.src.config import gateway_settings
 
 logger = logging.getLogger("api_gateway")
 router = APIRouter()

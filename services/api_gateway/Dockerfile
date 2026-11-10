@@ -20,7 +20,10 @@ RUN pip install --no-cache-dir --upgrade pip setuptools wheel \
 COPY shared /app/shared
 
 # Copy service source code
+COPY services/api_gateway /app/services/api_gateway
 COPY services/api_gateway/src /app/src
+
+ENV PYTHONPATH="/app"
 
 EXPOSE 8000
 

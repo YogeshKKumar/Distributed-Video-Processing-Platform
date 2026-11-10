@@ -1,9 +1,19 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from services.thumbnail_generation.src.db import init_db
-from services.thumbnail_generation.src.routes import router
-from services.thumbnail_generation.src.worker import process_thumbnail_task
+try:
+    from .db import init_db
+    from .routes import router
+    from .worker import process_thumbnail_task
+except (ImportError, ValueError):
+    try:
+        from src.db import init_db
+        from src.routes import router
+        from src.worker import process_thumbnail_task
+    except (ImportError, ValueError):
+        from services.thumbnail_generation.src.db import init_db
+        from services.thumbnail_generation.src.routes import router
+        from services.thumbnail_generation.src.worker import process_thumbnail_task
 from shared.config import shared_settings
 from shared.messaging import message_broker
 
